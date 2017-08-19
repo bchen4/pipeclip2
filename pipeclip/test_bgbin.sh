@@ -1,0 +1,1 @@
+python bgbin.py -d ../test/design.forbgbin --bin-min 3 --bin-peak 10
