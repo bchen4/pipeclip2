@@ -5,6 +5,7 @@
 import sys
 import re
 import pandas as pd
+import numpy as np
 import subprocess
 from multiprocessing import Pool
 from pybedtools import BedTool
@@ -43,23 +44,21 @@ def add_bed_name(fn, name):
 
 
 def merge_intersect(feature):
-  fields = feature.fields
-  record[1] = min(int(fields[1]),int(fields[6]))#smaller start
-  record[2] = max(int(fields[2]),int(fields[7])) #smaller stop
-  return record
+  feature.start = min(int(feature[1]),int(feature[7]))#smaller start
+  feature.stop = max(int(feature[2]),int(feature[8])) #smaller stop
+  return feature[0:6]
 
 def merge_rep(infile,level,out):
   files = infile['filter'] 
   bedfiles = []
   for f in files:
     bedfiles.append(BedTool(f))
-  logging.debug(bedfiles)
   if level=="all":
     intersect_bed = bedfiles[0]
     for b in bedfiles[1:]:
       intersect_bed = intersect_bed.intersect(b,s=True,wo=True).each(merge_intersect)
     
-    intersect_bed.saveas(out+"_mergerep.tmp") 
+    intersect_bed.saveas(out+"_mergerep.bed") 
   elif level == "two":
     intersect_list = []
     count = 1
@@ -70,7 +69,7 @@ def merge_rep(infile,level,out):
     intersect_bed = BedTool(intersect_list[0])  
     for f in intersect_list[1:]:
       intersect_bed = intersect_bed.cat(f,s=True)#.saveas(out+".merge.tmp")
-    intersect_bed.saveas(out+"_mergerep.tmp")
+    intersect_bed.saveas(out+"_mergerep.bed")
   #mergerep_bed = add_bed_name(out+"_mergerep.tmp", out)
   #mergerep_bed.saveas(out+"_mergerep.bed")
   return out+"_mergerep.bed"
@@ -79,11 +78,14 @@ def merge_rep(infile,level,out):
 def average_fc(df):
   peaks_list = []
   for name,group in df.groupby('group'):
+    logging.debug(name)
     peak = []
     treat_cols = []
     ctrl_cols = []
     newdf = pd.DataFrame()
     for f, rep in zip(group['normfc_txt'],group['replicates']):
+      logging.debug(f)
+      logging.debug(rep)
       fcfile = pd.read_table(f)
       fcfile['norm_count_treat_rep'+str(rep)] = (fcfile['treat_count']+1)*1000000/fcfile['ctrl_total']
       fcfile['norm_count_ctrl_rep'+str(rep)] = (fcfile['ctrl_count']+1)*1000000/fcfile['ctrl_total']
@@ -94,7 +96,9 @@ def average_fc(df):
       else:
         newdf = newdf.merge(fcfile.loc[:,['id','norm_count_treat_rep'+str(rep),'norm_count_ctrl_rep'+str(rep)]])
     #calculate average
-    newdf['ave_log2fc'] = newdf.apply(lambda x: sum(x.loc[:,treat_cols])/sum(x.loc[:,ctrl_cols]),axis=1)
+    logging.debug(treat_cols)
+    logging.debug(newdf.columns)
+    newdf['ave_log2fc'] = newdf.apply(lambda x:np.log2(x[treat_cols].sum()/x[ctrl_cols].sum()),axis=1)
     newdf.to_csv(name+"_finalpeak.xls",sep="\t",index=False)
     newdf.iloc[:,range(6)].to_csv(name+"_finalpeak.bed",sep="\t",index=False)
     peaks_list.append(name+"_finalpeak")
@@ -113,13 +117,20 @@ def main():
       merged_fn = merge_rep(group ,args.level, name)
       group['mergepeak'] = [merged_fn]*group.shape[0]
       newdesign = newdesign.append(group)
+    #remove previour treat count, total, control count, total columns
+    try:
+      newdesign.drop(['treat_count','treat_total','ctrl_count','ctrl_total','normfc_txt'],axis=1, inplace=True)
+    except:
+      logging.warning("Failed to drop the columns")
     newdesign.to_csv(args.dfile+".mergerep",sep="\t",index=False)
   #re-count and calculate average fold change
-    #BC#logging.debug("Start to recount")
-    #BC#recount_design = normfc.run_normfc(args.dfile+".mergerep",None,None,None,"mergepeak","multiple")
+    logging.debug("Start to recount")
+    recount_design = normfc.run_normfc(args.dfile+".mergerep",None,None,None,"mergepeak","multiple")
   # Get average fc
-    #BC#final_peaks = pd.DataFrame({'final_peak':average_fc(recount_design)})
-    #BC#final_peaks.to_csv(args.out,index=False)
+    recount_design.to_csv("mergerep_recount.design",sep="\t",index=False)
+    #recount_design = pd.read_table("mergerep_recount.design")
+    final_peaks = pd.DataFrame({'final_peak':average_fc(recount_design)})
+    final_peaks.to_csv(args.outprefix,index=False)
     
 
 if __name__=="__main__":
