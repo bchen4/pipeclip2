@@ -16,7 +16,7 @@ logging.basicConfig(level=10)
 
 
 def prepare_argparser():
-  description = "Generate bedgraph"
+  description = "Annotate peak file"
   epilog = "For command line options of each command, type %(prog)% COMMAND -h"
   argparser = ap.ArgumentParser(description=description, epilog = epilog)
   group = argparser.add_mutually_exclusive_group(required=True)

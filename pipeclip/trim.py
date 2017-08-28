@@ -92,7 +92,7 @@ def run_trim(f, op, out, pe, blen, mode):
       if op=="all":
         design['treat_rmbc_input'] = design['sampleName'].str.cat(["R2_cutadapt_treat.fastq"]*design.shape[0],sep="_")
         design['ctrl_rmbc_input'] = design['sampleName'].str.cat(["R2_cutadapt_ctrl.fastq"]*design.shape[0],sep="_")
-      elif op="cutadapt":#for alignment directly
+      elif op=="cutadapt":#for alignment directly
         design['treat_align_r1'] = design['sampleName'].str.cat(["R2_cutadapt_treat.fastq"]*design.shape[0],sep="_")
         design['ctrl_align_r1'] = design['sampleName'].str.cat(["R2_cutadapt_ctrl.fastq"]*design.shape[0],sep="_")
 
