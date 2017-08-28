@@ -78,7 +78,7 @@ The whole workflow includes following modules:
 # PIPE-CLIP2 workflow (eCLIP as an example)
 
 1.  **Trim the adapter and/or barcode.** 
-```python
+
     usage: trim.py [-h] (-i INFILE | -d DFILE) [-o OUTPREFIX] [--pe]
      [--ops {cutadapter,rmbarcode,all}] [--barcode-len BARCODELEN]
     
@@ -98,7 +98,6 @@ The whole workflow includes following modules:
      --ops {cutadapter,rmbarcode,all}
      --barcode-len BARCODELEN
      Barcode/randomer length
-```
 
 Use -i to provide fastq file if it is single sample mode. Use -d to provide design file when there are multiple files.
 
@@ -414,6 +413,4 @@ This program takes [Genepred Table Format](https://genome.ucsc.edu/FAQ/FAQformat
 
 Usage:
 
-    python [genepredTodetailBed.py](http://genepredtodetailbed.py) genepred_input > detailbed_outPK 
-     ��K�X 
-�=  �=  .                 PIPE-CLIP2-b4ab87b14384438eab4977dc003b1c30.mdPK      \   E>   
+    python [genepredTodetailBed.py](http://genepredtodetailbed.py) genepred_input > detailbed_out
