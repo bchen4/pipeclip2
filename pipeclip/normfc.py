@@ -47,11 +47,11 @@ def fisherP(a,b,c,d):
 def readcount(peak, bam,out):
   #Use bedtools to get readscount
   #logging.debug(bam)
-  #peakfile = pybedtools.BedTool(peak)
-  #bamfile = pybedtools.BedTool(bam)
-  #BC#intersect = peakfile.intersect(bamfile, wa=True, s=True, F=0.51, c=True).remove_invalid().saveas(out)
+  peakfile = pybedtools.BedTool(peak)
+  bamfile = pybedtools.BedTool(bam)
+  intersect = peakfile.intersect(bamfile, wa=True, s=True, F=0.51, c=True).remove_invalid().saveas(out)
   #logging.debug((out,bamfile.count()))
-  return (out,1000000)#bamfile.count())
+  return (out,bamfile.count())
 
 def readcount_wrapper(args):
   return readcount(*args)

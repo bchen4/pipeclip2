@@ -30,7 +30,6 @@ def prepare_argparser():
 
 def filter(infile, rc,fc, fp, yp,out):
   df = pd.read_table(infile)
-  logging.debug(df.columns) 
   df = df[df['treat_count']>= rc]
   if fc > 0:
     df = df[abs(df['norm_log2fc'])>=np.log2(fc)]
