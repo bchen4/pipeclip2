@@ -48,7 +48,7 @@ def merge_intersect(feature):
   feature.stop = max(int(feature[2]),int(feature[8])) #smaller stop
   return feature[0:6]
 
-def merge_rep(infile,level,out):
+def merge_rep(infile,level,out,fraction):
   files = infile['filter'] 
   bedfiles = []
   for f in files:
@@ -56,14 +56,14 @@ def merge_rep(infile,level,out):
   if level=="all":
     intersect_bed = bedfiles[0]
     for b in bedfiles[1:]:
-      intersect_bed = intersect_bed.intersect(b,s=True,wo=True,f=args.fraction, F=args.fraction,e=True).each(merge_intersect)
+      intersect_bed = intersect_bed.intersect(b,s=True,wo=True,f=fraction, F=fraction,e=True).each(merge_intersect)
     
     intersect_bed.saveas(out+"_mergerep.bed") 
   elif level == "two":
     intersect_list = []
     count = 1
     for a,b in combinations(bedfiles,2):
-      a.intersect(b,s=True,wo=True,f=args.fraction, F=args.fraction,e=True).each(merge_intersect).saveas(out+".merge.tmp"+str(count))
+      a.intersect(b,s=True,wo=True,f=fraction, F=fraction,e=True).each(merge_intersect).saveas(out+".merge.tmp"+str(count))
       intersect_list.append(out+".merge.tmp"+str(count))
       count += 1
     intersect_bed = BedTool(intersect_list[0])  
@@ -114,7 +114,7 @@ def main():
     design = pd.read_table(args.dfile)
     newdesign = pd.DataFrame()
     for name, group in design.groupby('group'):
-      merged_fn = merge_rep(group ,args.level, name)
+      merged_fn = merge_rep(group ,args.level, name, args.fraction)
       group['mergepeak'] = [merged_fn]*group.shape[0]
       newdesign = newdesign.append(group)
     #remove previour treat count, total, control count, total columns
