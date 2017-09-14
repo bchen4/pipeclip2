@@ -29,12 +29,15 @@ def prepare_argparser():
 
 
 def filter(infile, rc,fc, fp, yp,out):
+  logging.debug(rc)
   df = pd.read_table(infile)
+  logging.debug(df.shape)
   df = df[df['treat_count']>= rc]
+  logging.debug(df.shape)
   if fc > 0:
-    df = df[abs(df['norm_log2fc'])>=np.log2(fc)]
+    df = df[df['norm_log2fc']>=np.log2(fc)]
   elif fc == 0:
-    df = df[abs(df['norm_log2fc'])>0]
+    df = df[df['norm_log2fc']>0]
   if fp>0:
     df =df[df['fisherP']<=fp]
   if yp>0:

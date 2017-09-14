@@ -23,7 +23,7 @@ def prepare_argparser():
   argparser = ap.ArgumentParser(description=description, epilog = epilog)
   argparser.add_argument("-d","--design",dest = "dfile",type=str, help="design file")
   argparser.add_argument("-o","--output",dest = "outprefix",type=str, help="output prefix for single input. For design file, use sample name to generate output file names")
-  #argparser.add_argument("--rc",dest = "rc",type=int, default=5, help="Reads count in IP cutoff")
+  argparser.add_argument("-f","--fraction",dest = "fraction",type=float, default=0.001, help="Fraction of the overlap")
   #argparser.add_argument("--fc",dest = "fc",type=float, default=-1.0, help="fold change cutoff")
   #argparser.add_argument("--fp",dest="fp",type=float, default=-1.0, help = "Fisher p value cutoff")
   #argparser.add_argument("--yp",dest="yp",type=float, default=-1.0, help = "Yates p value cutoff")
@@ -56,14 +56,14 @@ def merge_rep(infile,level,out):
   if level=="all":
     intersect_bed = bedfiles[0]
     for b in bedfiles[1:]:
-      intersect_bed = intersect_bed.intersect(b,s=True,wo=True).each(merge_intersect)
+      intersect_bed = intersect_bed.intersect(b,s=True,wo=True,f=args.fraction, F=args.fraction,e=True).each(merge_intersect)
     
     intersect_bed.saveas(out+"_mergerep.bed") 
   elif level == "two":
     intersect_list = []
     count = 1
     for a,b in combinations(bedfiles,2):
-      a.intersect(b,s=True,wo=True).each(merge_intersect).saveas(out+".merge.tmp"+str(count))
+      a.intersect(b,s=True,wo=True,f=args.fraction, F=args.fraction,e=True).each(merge_intersect).saveas(out+".merge.tmp"+str(count))
       intersect_list.append(out+".merge.tmp"+str(count))
       count += 1
     intersect_bed = BedTool(intersect_list[0])  
