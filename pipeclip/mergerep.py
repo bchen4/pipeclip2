@@ -99,8 +99,9 @@ def average_fc(df):
     logging.debug(treat_cols)
     logging.debug(newdf.columns)
     newdf['ave_log2fc'] = newdf.apply(lambda x:np.log2(x[treat_cols].sum()/x[ctrl_cols].sum()),axis=1)
+    newdf = newdf.drop_duplicates()
     newdf.to_csv(name+"_finalpeak.xls",sep="\t",index=False)
-    newdf.iloc[:,range(6)].to_csv(name+"_finalpeak.bed",sep="\t",index=False)
+    newdf.iloc[:,range(6)].to_csv(name+"_finalpeak.bed",sep="\t",index=False,header=False)
     peaks_list.append(name+"_finalpeak")
 
   return peaks_list

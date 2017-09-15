@@ -42,7 +42,7 @@ def filter(infile, rc,fc, fp, yp,out):
     df =df[df['fisherP']<=fp]
   if yp>0:
     df = df[df['yatesP']<=yp]
-  df = df.iloc[:,range(6)]
+  df = df.iloc[:,range(6)].drop_duplicates()
   df.to_csv(out+"_normfc_filter.bed",sep="\t",index=False,header=False)
   return out+"_normfc_filter.bed"
 
