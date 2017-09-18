@@ -82,29 +82,51 @@ def run_normfc(f, out, treat, ctrl, peakcol, mode):
     normfc(out+"_treat.readscount", out+"_ctrl.readscount", treat_total, ctrl_total,out)
   elif mode == "multiple":#parse design file here
     design = pd.read_table(f.rstrip())
-    count_arglist_treat = zip(design[peakcol].tolist(),design['treat_rmdup_bam'],design['sampleName'].str.cat(["_treat.readscount"]*design.shape[0],sep=""))
-    count_arglist_ctrl = zip(design[peakcol].tolist(),design['ctrl_rmdup_bam'],design['sampleName'].str.cat(["_ctrl.readscount"]*design.shape[0],sep=""))
+    if peakcol=="peakbed":
+      count_arglist_treat = zip(design[peakcol].tolist(),design['treat_rmdup_bam'],design['sampleName'].str.cat(["_treat.readscount"]*design.shape[0],sep=""))
+      count_arglist_ctrl = zip(design[peakcol].tolist(),design['ctrl_rmdup_bam'],design['sampleName'].str.cat(["_ctrl.readscount"]*design.shape[0],sep=""))
+    elif peakcol=="mergepeak":
+      count_arglist_treat = zip(design[peakcol].tolist(),design['treat_rmdup_bam'],design['sampleName'].str.cat(["_treat.mergepeak.readscount"]*design.shape[0],sep=""))
+      count_arglist_ctrl = zip(design[peakcol].tolist(),design['ctrl_rmdup_bam'],design['sampleName'].str.cat(["_ctrl.mergepeak.readscount"]*design.shape[0],sep=""))
+      
     logging.debug(count_arglist_treat)
     logging.debug(count_arglist_ctrl)  
+    
     work_pool_treat = Pool(min(12,design.shape[0]))
     resultlist_treat = work_pool_treat.map(readcount_wrapper, count_arglist_treat)
     logging.debug(resultlist_treat)
-    df1 = pd.DataFrame(resultlist_treat,index=design.index,columns=["treat_count","treat_total"])
+    if peakcol == "peakbed":
+      df1 = pd.DataFrame(resultlist_treat,index=design.index,columns=["treat_count","treat_total"])
+    elif peakcol == "mergepeak":
+      df1 = pd.DataFrame(resultlist_treat,index=design.index,columns=["treat_count_mergepeak","treat_total_mergepeak"])
+      
     logging.debug("treatment reads count finished")
     work_pool_ctrl = Pool(min(12,design.shape[0]))
     resultlist_ctrl = work_pool_ctrl.map(readcount_wrapper, count_arglist_ctrl)
     logging.debug(resultlist_ctrl)
-    df2 = pd.DataFrame(resultlist_ctrl,index=design.index,columns=["ctrl_count","ctrl_total"])
+    if peakcol == "peakbed":
+      df2 = pd.DataFrame(resultlist_ctrl,index=design.index,columns=["ctrl_count","ctrl_total"])
+    elif peakcol == "mergepeak":
+      df2 = pd.DataFrame(resultlist_ctrl,index=design.index,columns=["ctrl_count_mergepeak","ctrl_total_mergepeak"])
+      
     logging.debug("control reads count finished")
     #logging.debug(design)
     logging.debug(design.columns)
     #itart to calculate fold change
     design = pd.concat([design,df1,df2],axis=1)
-    normfc_arglist = zip(design['treat_count'], design['ctrl_count'],design['treat_total'],design['ctrl_total'],design['sampleName'])
+    if peakcol == "peakbed":
+      normfc_arglist = zip(design['treat_count'], design['ctrl_count'],design['treat_total'],design['ctrl_total'],design['sampleName'])
+    elif peakcol == "mergepeak":
+      normfc_arglist = zip(design['treat_count_mergepeak'], design['ctrl_count_mergepeak'],design['treat_total_mergepeak'],design['ctrl_total_mergepeak'],design['sampleName'].str.cat(["_mergepeak"]*design.shape[0])
+
     logging.debug(normfc_arglist)
     work_pool = Pool(min(12,design.shape[0]))
     outfile_list = work_pool.map(normfc_wrapper, normfc_arglist)
-    design = pd.concat([design, pd.DataFrame({"normfc_txt":outfile_list}, index=design.index)],axis=1)
+    if peakcol == "peakbed":
+      design = pd.concat([design, pd.DataFrame({"normfc_txt":outfile_list}, index=design.index)],axis=1)
+    elif peakcol == "mergepeak":
+      design = pd.concat([design, pd.DataFrame({"mergepeak_normfc_txt":outfile_list}, index=design.index)],axis=1)
+
     return design
 
 def main():
