@@ -117,9 +117,7 @@ def run_normfc(f, out, treat, ctrl, peakcol, mode):
     if peakcol == "peakbed":
       normfc_arglist = zip(design['treat_count'], design['ctrl_count'],design['treat_total'],design['ctrl_total'],design['sampleName'])
     elif peakcol == "mergepeak":
-      normfc_arglist = zip(design['treat_count_mergepeak'], design['ctrl_count_mergepeak'],design['treat_total_mergepeak'],design['ctrl_total_mergepeak'],design['sampleName'].str.cat(["_mergepeak"]*design.shape[0])
-
-    logging.debug(normfc_arglist)
+      normfc_arglist = zip(design['treat_count_mergepeak'], design['ctrl_count_mergepeak'],design['treat_total_mergepeak'],design['ctrl_total_mergepeak'],design['sampleName'].str.cat(["_mergepeak"]*design.shape[0]))
     work_pool = Pool(min(12,design.shape[0]))
     outfile_list = work_pool.map(normfc_wrapper, normfc_arglist)
     if peakcol == "peakbed":
